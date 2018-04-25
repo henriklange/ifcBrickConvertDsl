@@ -1,0 +1,49 @@
+grammar org.xtext.ifcbrickconvert.IfcBrick with org.eclipse.xtext.common.Terminals
+
+generate ifcBrick "http://www.xtext.org/ifcbrickconvert/IfcBrick"
+
+Root:
+	'ISO-10303-21' ';'
+	header=Header
+	data=Data
+	'END-ISO-10303-21' ';'
+;
+
+Header: 
+	'HEADER' ';'
+	headerEntities+=EntityTerminated+
+	'ENDSEC' ';'
+;
+
+Data: 
+	'DATA' ';' 
+	entityWithIds+=EntityWithId+
+	'ENDSEC' ';'
+;
+
+Entity: definition=ID attributeCollection=AttributeCollection;
+EntityWithId: eid=EntId '=' entity=Entity ';';
+EntityTerminated: entity=Entity ';';
+
+AttributeCollection: '(' attributes+=Attribute? (',' attributes+=Attribute)* ')' ;
+
+Attribute: x=ID | eid=EntId | '.' x=ID '.'
+	| c=CSV | e=Entity | ac=AttributeCollection
+	| u='$' | u='*' | s=XSTRING
+ 	| i=INT | d=DOUBLE | n=NUMBER
+;
+
+EntId: '#' id=INT ;
+CSV: a=INT ';' b=INT;
+
+terminal DOUBLE:      INT '.' INT? ('E' '-'? ('0'..'9')*)?;
+/* DOUBLE must not be ambiguous with INT */
+
+terminal NUMBER: ('-')INT ('.' INT*)? ('E' '-'? INT)?;
+/* NUMBER matches all negative types (int, double, e-notation) */
+
+terminal XSTRING: ("'" -> "'")+;
+/* IFC supports multiple concatenated strings e.g. 'a''b' */
+
+
+
